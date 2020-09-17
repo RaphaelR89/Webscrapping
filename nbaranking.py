@@ -15,38 +15,46 @@ from selenium.common.exceptions import NoSuchElementException
 import json
 
 # navegar até o site
-url = "https://stats.nba.com/players/traditional/?SeasonType=Playoffs&sort=PTS&dir=-1"
+url = "https://stats.nba.com/players/traditional/?SeasonType=Playoffs&sort=PLAYER_NAME&dir=1"
 driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get(url)
 time.sleep(3)
 # ordenar por PTS
-driver.find_element_by_xpath("//button[@id='onetrust-accept-btn-handler']").click()
-# driver.find_element_by_xpath("/html/body/main/div[2]/div/div[2]/div/div/nba-stat-table/div[2]/div[1]/table/thead/tr/th[9]").click() clicando 2x
-element = driver.find_element_by_xpath("//div[@class='nba-stat-table']//table")
-html_content = element.get_attribute('outerHTML')
+top10ranking = {}
 
 rankings = {
-    '3Points': {'field': 'FG3M', 'label': '3PM'},
-    'Points': {'field': 'PTS', 'label': 'PTS'},
-    'Assistants': {'field': 'AST', 'label': 'AST'},
-    'Rebounds': {'field': 'REB', 'label': 'REB'},
-    'Steals': {'field': 'STL', 'label': 'STL'},
-    'Blocks': {'field': 'BLK', 'label': 'BLK'},
+    '3points': {'field': 'FG3M', 'label': '3PM'},
+    'points': {'field': 'PTS', 'label': 'PTS'},
+    'assistants': {'field': 'AST', 'label': 'AST'},
+    'rebounds': {'field': 'REB', 'label': 'REB'},
+    'steals': {'field': 'STL', 'label': 'STL'},
+    'blocks': {'field': 'BLK', 'label': 'BLK'},
 }
 
-# Parsear o conteúdo com BeautifulSoup
-soup = BeautifulSoup(html_content, 'html.parser')
-table = soup.find(name='table')
+def buildrank(type):
+    field = rankings[type]['field']
+    label = rankings[type]['label']
+    
+    driver.find_element_by_xpath("//button[@id='onetrust-accept-btn-handler']").click()
+    driver.find_element_by_xpath(f"//div[@class='nba-stat-table']//table//thead//tr//th[@data-field='{field}']").click()
+    element = driver.find_element_by_xpath("//div[@class='nba-stat-table']//table")
+    html_content = element.get_attribute('outerHTML')
+    # Parsear o conteúdo com BeautifulSoup
+    soup = BeautifulSoup(html_content, 'html.parser')
+    table = soup.find(name='table')
 
-# Estruturar com o Panda
-df_full = pd.read_html(str(table))[0].head(10)
-df = df_full[["Unnamed: 0", "PLAYER", "TEAM", "PTS"]]
-df.columns = ['pos', 'player', 'team', 'total']
+    # Estruturar com o Panda
+    df_full = pd.read_html(str(table))[0].head(10)
+    df = df_full[["Unnamed: 0", "PLAYER", "TEAM", label]]
+    df.columns = ['pos', 'player', 'team', 'total']
 
-# Transformar os Dados em um dicionário de dados próprio
-top10ranking = {}
-top10ranking['points'] = df.to_dict('records')
+    # Transformar os Dados em um dicionário de dados próprio
+    
+    return df.to_dict('records')
 
+top10ranking['points'] = buildrank('points')
+
+driver.quit()
 # Converter e salvar em um arquivo JSON
 js = json.dumps(top10ranking)
 fp = open('ranking.json', 'w')
