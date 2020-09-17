@@ -20,7 +20,11 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get(url)
 time.sleep(3)
 
-# ordenar por PTS
+#POPUP do site
+popup = driver.find_element_by_xpath("//button[@id='onetrust-accept-btn-handler']")
+if popup:
+    popup.click()
+# ordenar por categorias
 top10ranking = {}
 rankings = {
     '3points': {'field': 'FG3M', 'label': '3PM'},
@@ -36,32 +40,29 @@ def buildrank(type):
     field = rankings[type]['field']
     label = rankings[type]['label']
     
-    driver.find_element_by_xpath("//button[@id='onetrust-accept-btn-handler']").click()
     driver.find_element_by_xpath(f"//div[@class='nba-stat-table']//table//thead//tr//th[@data-field='{field}']").click()
     element = driver.find_element_by_xpath("//div[@class='nba-stat-table']//table")
     html_content = element.get_attribute('outerHTML')
     # Parsear o conteúdo com BeautifulSoup
     soup = BeautifulSoup(html_content, 'html.parser')
     table = soup.find(name='table')
-
     # Estruturar com o Panda
     df_full = pd.read_html(str(table))[0].head(10)
     df = df_full[["Unnamed: 0", "PLAYER", "TEAM", label]]
     df.columns = ['pos', 'player', 'team', 'total']
-
     # Transformar os Dados em um dicionário de dados próprio
-    
     return df.to_dict('records')
 
 top10ranking['points'] = buildrank('points')
-#fechar bot
+
+for i in rankings:
+    top10ranking[i] = buildrank(i)
+
+#Fechar bot
 driver.quit()
+
 # Converter e salvar em um arquivo JSON
 js = json.dumps(top10ranking)
 fp = open('ranking.json', 'w')
 fp.write(js)
 fp.close()
-
-
-
-
