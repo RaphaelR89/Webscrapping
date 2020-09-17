@@ -21,7 +21,7 @@ driver.get(url)
 time.sleep(3)
 # ordenar por PTS
 driver.find_element_by_xpath("//button[@id='onetrust-accept-btn-handler']").click()
-# driver.find_element_by_xpath("/html/body/main/div[2]/div/div[2]/div/div/nba-stat-table/div[2]/div[1]/table/thead/tr/th[9]").click()
+# driver.find_element_by_xpath("/html/body/main/div[2]/div/div[2]/div/div/nba-stat-table/div[2]/div[1]/table/thead/tr/th[9]").click() clicando 2x
 element = driver.find_element_by_xpath("//div[@class='nba-stat-table']//table")
 html_content = element.get_attribute('outerHTML')
 
