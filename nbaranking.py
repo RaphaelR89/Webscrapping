@@ -24,6 +24,10 @@ driver.find_element_by_xpath("//div[@class='nba-stat-table']//table//thead//tr//
 element = driver.find_element_by_xpath("//div[@class='nba-stat-table']//table")
 html_content = element.get_attribute('outerHTML')
 
+# Parsear o conteúdo com BeautifulSoup
+
+soup = BeautifulSoup(html_content, 'html.parser')
+table = soup.find(name='table')
 
 
 
