@@ -53,7 +53,7 @@ def buildrank(type):
     return df.to_dict('records')
 
 top10ranking['points'] = buildrank('points')
-
+#fechar bot
 driver.quit()
 # Converter e salvar em um arquivo JSON
 js = json.dumps(top10ranking)
